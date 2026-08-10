@@ -1,0 +1,96 @@
+cases:
+  - id: happy-path-stepwise
+    kind: booking
+    turns:
+      - user: "hello"
+        expect: { node: menu, contains_all: ["Book a room"] }
+      - user: "1"
+        expect: { node: ask_date }
+      - user: "2026-09-02"
+        expect: { node: ask_time }
+      - user: "10am"
+        expect: { node: ask_size, state: { time: "10:00" } }
+      - user: "4 people"
+        expect:
+          node: offer
+          state: { size: 4 }
+          contains_all: ["Studio"]
+          not_contains_any: ["Alcove", "Cellar", "Terrace"]
+      - user: "Studio"
+        expect: { node: confirmed, state: { room: "Studio" } }
+
+  - id: all-slots-in-one-message
+    kind: booking
+    turns:
+      - user: "hi"
+      - user: "1"
+      - user: "2026-09-02 at 3pm for 10 people"
+        expect:
+          node: offer
+          state: { date: "2026-09-02", time: "15:00", size: 10 }
+          contains_all: ["Atrium"]
+          not_contains_any: ["Studio", "Alcove"]
+
+  - id: does-not-offer-a-taken-room
+    kind: booking
+    seed_state: { node: ask_size, date: "2026-09-01", time: "14:00" }
+    turns:
+      - user: "5 people"
+        expect:
+          node: offer
+          contains_all: ["Atrium"]
+          not_contains_any: ["Studio"]
+
+  - id: does-not-offer-a-decommissioned-room
+    kind: booking
+    seed_state: { node: ask_size, date: "2026-09-03", time: "09:00" }
+    turns:
+      - user: "8 people"
+        expect:
+          node: offer
+          not_contains_any: ["Cellar"]
+
+  - id: no-room-large-enough-hands-off
+    kind: booking
+    seed_state: { node: ask_size, date: "2026-09-03", time: "09:00" }
+    turns:
+      - user: "40 people"
+        expect: { node: handoff }
+
+  - id: three-strikes-escalates
+    kind: escalation
+    turns:
+      - user: "hello"
+      - user: "banana"
+        expect: { node: menu }
+      - user: "pineapple"
+        expect: { node: menu }
+      - user: "kumquat"
+        expect: { node: handoff, contains_all: ["colleague"] }
+
+  - id: a-good-answer-resets-the-strike-counter
+    kind: escalation
+    turns:
+      - user: "hello"
+      - user: "banana"
+      - user: "1"
+        expect: { node: ask_date }
+      - user: "turnip"
+      - user: "parsnip"
+        expect: { node: ask_date }
+
+  - id: menu-option-three-goes-straight-to-a-person
+    kind: routing
+    turns:
+      - user: "hi"
+      - user: "3"
+        expect: { node: handoff }
+
+  - id: correcting-a-slot-later
+    kind: booking
+    seed_state: { node: ask_time, date: "2026-09-05" }
+    turns:
+      - user: "actually make it 2026-09-06, 11am, 2 people"
+        expect:
+          node: offer
+          state: { date: "2026-09-06", time: "11:00", size: 2 }
