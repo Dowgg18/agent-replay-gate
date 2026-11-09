@@ -21,6 +21,12 @@ dev = [
 [project.scripts]
 replaygate = "replaygate.cli:main"
 
+[project.urls]
+Homepage = "https://github.com/Dowgg18/agent-replay-gate"
+Source = "https://github.com/Dowgg18/agent-replay-gate"
+Issues = "https://github.com/Dowgg18/agent-replay-gate/issues"
+Changelog = "https://github.com/Dowgg18/agent-replay-gate/blob/main/CHANGELOG.md"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -30,6 +36,7 @@ packages = ["src/replaygate"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 
 [tool.ruff]
